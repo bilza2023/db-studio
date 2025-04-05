@@ -6,6 +6,7 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
 // Main presentation model (top level content)
 model Presentation {
   id           String   @id
@@ -29,6 +30,7 @@ model Presentation {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
 // EqSlide model for equation slides
 model EqSlide {
   id          String    @id
@@ -50,6 +52,7 @@ model EqSlide {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
 // Canvas slide model 
 model CanvasSlide {
   id              String    @id
@@ -57,12 +60,20 @@ model CanvasSlide {
   type            String    @default("canvas")
   sortOrder       Int       @default(0)
   
+  // Background (formerly slideExtra)
+  backgroundType        String    @default("background")
+  backgroundColor       String    @default("#363446")
+  backgroundOpacity     Float     @default(0.7)
+  backgroundImage       String?
+  showGrid             Boolean   @default(false)
+  gridLineWidth        Float     @default(1)
+  gridLineColor        String    @default("black")
+  cellHeight           Float     @default(25)
+  cellWidth            Float     @default(25)
+  
   // Relationship to parent presentation  
   presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
   presentationId String
-  
-  // Relationship to slideExtra (1-to-1)
-  slideExtra    SlideExtra?
   
   // Relationships to canvas items
   textItems      CanvasText[]
@@ -83,27 +94,7 @@ model CanvasSlide {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-// SlideExtra model (1-to-1 relationship with CanvasSlide)
-model SlideExtra {
-  id                String    @id @default(cuid())
-  type              String    @default("background")
-  color             String    @default("gray")
-  opacity           Float     @default(0.7)
-  backgroundColor   String    @default("#363446")
-  cellHeight        Float     @default(25)
-  cellWidth         Float     @default(25)
-  backgroundImage   String?
-  showGrid          Boolean   @default(false)
-  gridLineWidth     Float     @default(1)
-  gridLineColor     String    @default("black")
-  
-  // Relationship to canvas slide (1-to-1)
-  slide             CanvasSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId           String      @unique // This makes it a 1-to-1 relationship
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
+
 // Base fields for all canvas items
 // Note: These are common fields shared across all item types
 model CanvasText {
