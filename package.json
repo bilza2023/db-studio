@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "description": "31-March-2025",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "nodemon src/prismaPresentationRouter"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +14,11 @@
     "nodemon": "^3.1.9",
     "prisma": "^6.5.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "express": "^5.1.0",
     "uuid": "^11.1.0"
   }
 }
