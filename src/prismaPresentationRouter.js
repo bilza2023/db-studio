@@ -1,8 +1,8 @@
 
 const { PrismaClient } = require("@prisma/client");
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
-
+const uuid = require("../uuid");
+const create = require("./create");
 const prisma = new PrismaClient();
 const app = express();
 const port = 5000;
@@ -10,8 +10,9 @@ const port = 5000;
 app.use(express.json());
 
 // Root endpoint
-app.get("/", (req, res) => {
-  return res.json({ message: "Welcome to Presentations API" }).status(200);
+app.get("/", async(req, res) => {
+  // debugger;
+  return res.json({ message: "Welcome To Prisma ApI" }).status(200);
 });
 
 // Health check endpoint
@@ -19,6 +20,17 @@ app.get("/ping", async (req, res) => {
   try {
     const count = await prisma.presentation.count();
     return res.json({ message: "pong", count }).status(200);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+// Health check endpoint
+app.get("/create", async (req, res) => {
+  try {
+    debugger;
+    const createResult = await create(req,res);
+
+    return res.json({ message: "created", createResult }).status(200);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -46,7 +58,7 @@ app.post("/presentations", async (req, res) => {
 
     const presentation = await prisma.presentation.create({
       data: {
-        id: uuidv4(),
+        id: uuid(),
         tcode,
         chapter,
         exercise,
@@ -242,8 +254,8 @@ app.post("/presentations/:presentationId/eq-slides", async (req, res) => {
 
     const eqSlide = await prisma.eqSlide.create({
       data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
+        id: uuid(),
+        uuid: uuid(),
         startTime,
         endTime,
         type,
@@ -320,8 +332,8 @@ app.post("/presentations/:presentationId/canvas-slides", async (req, res) => {
 
     const canvasSlide = await prisma.canvasSlide.create({
       data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
+        id: uuid(),
+        uuid: uuid(),
         type: "canvas",
         sortOrder: sortOrder || 0,
         presentation: {
@@ -399,8 +411,8 @@ app.post("/eq-slides/:slideId/items", async (req, res) => {
 
     const eqItem = await prisma.eqItem.create({
       data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
+        id: uuid(),
+        uuid: uuid(),
         name: name || "",
         content: content || "",
         showAt,
