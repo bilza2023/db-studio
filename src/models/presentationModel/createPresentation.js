@@ -5,12 +5,11 @@ const presentationHelpers = require("./presentationHelpers.js");
   async function createPresentation(prisma,req, res) {
  
     try {
-      debugger;
       const {
         presentationData,
         eqSlidesData,
         canvasSlidesData,
-      } = req;
+      } = req.body;
 ////////////////////////////////////////////////////////////////////////////////      
       // Validate required data
       if (!presentationData) {
@@ -19,10 +18,10 @@ const presentationHelpers = require("./presentationHelpers.js");
   
       // Start a transaction for data consistency
       const result = await prisma.$transaction(async (prisma) => {
-        debugger;
+     
         // 1. Create the base presentation
         const presentation = await presentationHelpers.createPresentation(prisma, presentationData);
-        
+        debugger;   
         // 2. Create eq slides if provided
         if (eqSlidesData && eqSlidesData.length > 0) {
           for (const eqSlideData of eqSlidesData) {

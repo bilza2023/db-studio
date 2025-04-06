@@ -54,15 +54,14 @@ model EqSlide {
 model EqItem {
   id          String    @id
   uuid        String    @unique
-  name        String    @default("")
+  name        String?    @default("")
   content     String    @default("")
   showAt      Int
-  hideAt      Int
   startTime   Int
   endTime     Int
   code        String    @default("")
   type        String
-  sortOrder   Int       @default(0)
+  sortOrder   Int?      @default(0)
   
   // Relationship to parent slide
   slide       EqSlide   @relation(fields: [slideId], references: [id], onDelete: Cascade)
@@ -312,6 +311,8 @@ model CanvasDot {
   // Dot-specific fields
   x           Float
   y           Float
+  labelX      Int
+  labelY      Int
   label       String
   radius      Float
   textColor   String
@@ -390,7 +391,7 @@ model CanvasList {
   // List-specific fields
   x           Float
   y           Float
-  listItems   String    // Stored as JSON array string
+  listArray   Json    // Stored as JSON array string
   fontSize    Float
   fontFamily  String
   lineGap     Float
@@ -414,7 +415,7 @@ model CanvasPieChart {
   x           Float
   y           Float
   radius      Float
-  chartData   String    // Stored as JSON string for data array
+  data   Json   
   showLabels  Boolean
   labelFontSize Float
   labelColor  String

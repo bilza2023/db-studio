@@ -6,6 +6,7 @@ const presentationHelpers = {
 
     // Create a presentation record
     async createPresentation(prisma, presentationData) {
+      // debugger;
       return await prisma.presentation.create({
         data: {
           id: uuid(),
@@ -62,7 +63,6 @@ const presentationHelpers = {
             name: itemData.name || "",
             content: itemData.content || "",
             showAt: itemData.showAt,
-            hideAt: itemData.hideAt,
             startTime: itemData.startTime,
             endTime: itemData.endTime,
             code: itemData.code || "",
@@ -158,12 +158,15 @@ const presentationHelpers = {
       return createdItems;
     },  
     // Create a specific canvas item based on its type
+// Create a specific canvas item based on its type
+// Create a specific canvas item based on its type
     async createCanvasItem(prisma, slideId, item) {
       switch (item.type) {
         case "text":
           return await prisma.canvasText.create({
             data: {
               uuid: uuid(),
+              type: "text",
               name: item.name || "",
               opacity: item.opacity || 1,
               color: item.color,
@@ -184,6 +187,7 @@ const presentationHelpers = {
           return await prisma.canvasRectangle.create({
             data: {
               uuid: uuid(),
+              type: "rectangle",
               name: item.name || "",
               opacity: item.opacity || 1,
               color: item.color,
@@ -205,6 +209,7 @@ const presentationHelpers = {
           return await prisma.canvasCircle.create({
             data: {
               uuid: uuid(),
+              type: "circle",
               name: item.name || "",
               opacity: item.opacity || 1,
               color: item.color,
@@ -226,6 +231,7 @@ const presentationHelpers = {
           return await prisma.canvasLine.create({
             data: {
               uuid: uuid(),
+              type: "line",
               name: item.name || "",
               opacity: item.opacity || 1,
               color: item.color,
@@ -246,6 +252,7 @@ const presentationHelpers = {
           return await prisma.canvasRay.create({
             data: {
               uuid: uuid(),
+              type: "ray",
               name: item.name || "",
               opacity: item.opacity || 1,
               color: item.color,
@@ -265,51 +272,203 @@ const presentationHelpers = {
               },
             },
           });
-        // Add cases for other item types as needed
+        case "image":
+          return await prisma.canvasImage.create({
+            data: {
+              uuid: uuid(),
+              type: "image",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color || "",
+              x: item.x,
+              y: item.y,
+              rotation: item.rotation || 0,
+              src: item.src,
+              width: item.width,
+              height: item.height,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "dot":
+          return await prisma.canvasDot.create({
+            data: {
+              uuid: uuid(),
+              type: "dot",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              labelX: item.labelX,
+              labelY: item.labelY,
+              label: item.label,
+              radius: item.radius,
+              textColor: item.textColor,
+              textSize: item.textSize,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "ellipse":
+          return await prisma.canvasEllipse.create({
+            data: {
+              uuid: uuid(),
+              type: "ellipse",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              radiusX: item.radiusX,
+              radiusY: item.radiusY,
+              rotation: item.rotation,
+              startAngle: item.startAngle,
+              endAngle: item.endAngle,
+              lineWidth: item.lineWidth,
+              filled: item.filled,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "icon":
+          return await prisma.canvasIcon.create({
+            data: {
+              uuid: uuid(),
+              type: "icon",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              text: item.text,
+              fontSize: item.fontSize,
+              iconSize: item.iconSize,
+              fontFamily: item.fontFamily,
+              icon: item.icon,
+              showBg: item.showBg,
+              iconOnTop: item.iconOnTop,
+              iconErrorX: item.iconErrorX,
+              iconErrorY: item.iconErrorY,
+              bgColor: item.bgColor,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "list":
+        
+          return await prisma.canvasList.create({
+            data: {
+              uuid: uuid(),
+              type: "list",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              listArray: item.listArray,
+              fontSize: item.fontSize,
+              fontFamily: item.fontFamily,
+              lineGap: item.lineGap,
+              indentation: item.indentation,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "piechart":
+          return await prisma.canvasPieChart.create({
+            data: {
+              uuid: uuid(),
+              type: "piechart",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              x: item.x,
+              y: item.y,
+              radius: item.radius,
+              data: item.data,
+              showLabels: item.showLabels,
+              labelFontSize: item.labelFontSize,
+              labelColor: item.labelColor,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "angle":
+          return await prisma.canvasAngle.create({
+            data: {
+              uuid: uuid(),
+              type: "angle",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              radius: item.radius,
+              ticks: item.ticks,
+              startAngle: item.startAngle,
+              endAngle: item.endAngle,
+              lineWidth: item.lineWidth,
+              showOrigin: item.showOrigin,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "sprite":
+          return await prisma.canvasSprite.create({
+            data: {
+              uuid: uuid(),
+              type: "sprite",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              src: item.src,
+              selectedItem: item.selectedItem,
+              x: item.x,
+              y: item.y,
+              width: item.width,
+              height: item.height,
+              rotation: item.rotation,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "triangle":
+          return await prisma.canvasTriangle.create({
+            data: {
+              uuid: uuid(),
+              type: "triangle",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x1: item.x1,
+              y1: item.y1,
+              x2: item.x2,
+              y2: item.y2,
+              x3: item.x3,
+              y3: item.y3,
+              rotation: item.rotation,
+              lineWidth: item.lineWidth,
+              filled: item.filled,
+              dash: item.dash,
+              gap: item.gap,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
         default:
           console.warn(`Unknown canvas item type: ${item.type}`);
           return null;
       }
-    },
-    // Fetch the complete presentation with all related data
-    async read(prisma, presentationId) {
-      return await prisma.presentation.findUnique({
-        where: { id: presentationId },
-        include: {
-          eqSlides: {
-            include: {
-              items: {
-                include: {
-                  sp: true,
-                },
-                orderBy: { sortOrder: "asc" },
-              },
-            },
-            orderBy: { sortOrder: "asc" },
-          },
-          canvasSlides: {
-            include: {
-              slideExtra: true,
-              textItems: true,
-              rectangleItems: true,
-              circleItems: true,
-              imageItems: true,
-              lineItems: true,
-              rayItems: true,
-              dotItems: true,
-              ellipseItems: true,
-              iconItems: true,
-              listItems: true,
-              pieChartItems: true,
-              angleItems: true,
-              spriteItems: true,
-              triangleItems: true,
-            },
-            orderBy: { sortOrder: "asc" },
-          },
-        },
-      });
     }
+  
   };
   
   module.exports  = presentationHelpers;

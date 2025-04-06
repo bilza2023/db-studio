@@ -1,7 +1,87 @@
 -- CreateTable
+CREATE TABLE "Presentation" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "tcode" TEXT NOT NULL,
+    "chapter" INTEGER NOT NULL,
+    "exercise" TEXT NOT NULL,
+    "filename" TEXT NOT NULL,
+    "questionNo" INTEGER NOT NULL,
+    "part" INTEGER NOT NULL,
+    "name" TEXT NOT NULL DEFAULT '',
+    "questionType" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "comments" TEXT NOT NULL DEFAULT '',
+    "tags" TEXT NOT NULL DEFAULT '[]',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "EqSlide" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "uuid" TEXT NOT NULL,
+    "startTime" INTEGER NOT NULL,
+    "endTime" INTEGER NOT NULL,
+    "type" TEXT NOT NULL,
+    "version" TEXT NOT NULL,
+    "template" TEXT NOT NULL DEFAULT '',
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "presentationId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "EqSlide_presentationId_fkey" FOREIGN KEY ("presentationId") REFERENCES "Presentation" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "EqItem" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "uuid" TEXT NOT NULL,
+    "name" TEXT DEFAULT '',
+    "content" TEXT NOT NULL DEFAULT '',
+    "showAt" INTEGER NOT NULL,
+    "startTime" INTEGER NOT NULL,
+    "endTime" INTEGER NOT NULL,
+    "code" TEXT NOT NULL DEFAULT '',
+    "type" TEXT NOT NULL,
+    "sortOrder" INTEGER DEFAULT 0,
+    "slideId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "EqItem_slideId_fkey" FOREIGN KEY ("slideId") REFERENCES "EqSlide" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Sp" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "code" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "itemId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Sp_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "EqItem" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "CanvasSlide" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "uuid" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'canvas',
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "name" TEXT,
+    "startTime" INTEGER NOT NULL DEFAULT 0,
+    "endTime" INTEGER NOT NULL DEFAULT 10,
+    "template" TEXT,
+    "presentationId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "CanvasSlide_presentationId_fkey" FOREIGN KEY ("presentationId") REFERENCES "Presentation" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "SlideExtra" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "type" TEXT NOT NULL DEFAULT 'background',
     "color" TEXT NOT NULL DEFAULT 'gray',
     "opacity" REAL NOT NULL DEFAULT 0.7,
     "backgroundColor" TEXT NOT NULL DEFAULT '#363446',
@@ -328,6 +408,15 @@ CREATE TABLE "CanvasTriangle" (
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "CanvasTriangle_slideId_fkey" FOREIGN KEY ("slideId") REFERENCES "CanvasSlide" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EqSlide_uuid_key" ON "EqSlide"("uuid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EqItem_uuid_key" ON "EqItem"("uuid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CanvasSlide_uuid_key" ON "CanvasSlide"("uuid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SlideExtra_slideId_key" ON "SlideExtra"("slideId");
