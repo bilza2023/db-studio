@@ -1,22 +1,16 @@
 
-const prisma = require("./models/db.js");
-const uuid = require("../uuid");
-const presentation = require("./models/presentationModel/presentationData-manual.js")
-const presentationHelpers = require("./models/presentationModel/presentationHelpers.js");
+const presentationHelpers = require("./presentationHelpers.js");
 
-  async function create(req, res) {
+
+  async function createPresentation(prisma,req, res) {
  
     try {
       debugger;
-      // const {
-        const presentationData = presentation. presentationData;
-        const eqSlidesData = presentation. eqSlidesData;
-        const canvasSlidesData = presentation. canvasSlidesData;
-      // } = req.body;
-  
-////////////////////////////////////////////////////////////////////////////////
-
-
+      const {
+        presentationData,
+        eqSlidesData,
+        canvasSlidesData,
+      } = req;
 ////////////////////////////////////////////////////////////////////////////////      
       // Validate required data
       if (!presentationData) {
@@ -55,4 +49,4 @@ const presentationHelpers = require("./models/presentationModel/presentationHelp
 
   }
 
-  module.exports = create;
+  module.exports = createPresentation;

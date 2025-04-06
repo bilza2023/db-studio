@@ -16,7 +16,7 @@ const presentation={
     comments: "sss",
     tags: "",
 },
-"eqSlidesData" : [
+"eqSlides" : [
     {
       startTime : 0,
       endTime : 10,
@@ -44,7 +44,7 @@ const presentation={
     }
   ],
   
-"canvasSlidesData" : [{
+"canvasSlides" : [{
         uuid: "31ce5b05-a8a3-43c3-b473-cddab5b978f6",
         startTime: 0,
         endTime: 10,

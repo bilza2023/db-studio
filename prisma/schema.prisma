@@ -69,7 +69,7 @@ model EqItem {
   slideId     String
   
   // Relationship to solution points
-  sps         Sp[]
+  sp        Sp[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -96,7 +96,10 @@ model CanvasSlide {
   uuid            String    @unique
   type            String    @default("canvas")
   sortOrder       Int       @default(0)
-  
+  name            String?
+  startTime       Int       @default(0)
+  endTime         Int       @default(10)
+  template        String?
   // Relationship to parent presentation  
   presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
   presentationId String

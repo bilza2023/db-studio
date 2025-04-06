@@ -1,12 +1,11 @@
 
-const uuid = require("../uuid");
+const uuid = require("../../../uuid");
 
 // Helper functions for creating presentation components
 const presentationHelpers = {
 
     // Create a presentation record
     async createPresentation(prisma, presentationData) {
-      debugger;
       return await prisma.presentation.create({
         data: {
           id: uuid(),
@@ -273,7 +272,7 @@ const presentationHelpers = {
       }
     },
     // Fetch the complete presentation with all related data
-    async getCompletePresentation(prisma, presentationId) {
+    async read(prisma, presentationId) {
       return await prisma.presentation.findUnique({
         where: { id: presentationId },
         include: {
@@ -281,7 +280,7 @@ const presentationHelpers = {
             include: {
               items: {
                 include: {
-                  sps: true,
+                  sp: true,
                 },
                 orderBy: { sortOrder: "asc" },
               },

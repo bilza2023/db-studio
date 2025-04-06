@@ -1,12 +1,13 @@
 
-const { PrismaClient } = require("@prisma/client");
+// const { PrismaClient } = require("@prisma/client");
+const PresentationModel = require("./src/models/presentationModel/PresentationModel");
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
-const create = require("./src/create");
-const prisma = new PrismaClient();
+const cors = require("cors"); 
+
 const app = express();
 const port = 5000;
 
+app.use(cors());
 app.use(express.json());
 
 // Root endpoint
@@ -18,7 +19,8 @@ app.get("/", async(req, res) => {
 // Health check endpoint
 app.get("/ping", async (req, res) => {
   try {
-    const count = await prisma.presentation.count();
+    // const count = await prisma.presentation.count();
+    const count = 999;
     return res.json({ message: "pong", count }).status(200);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -28,9 +30,29 @@ app.get("/ping", async (req, res) => {
 app.get("/create", async (req, res) => {
   try {
     // debugger;
-    const createResult = await create(req,res);
+    const createResult = await PresentationModel.create(req,res);
 
     return res.json({ message: "created", createResult }).status(200);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+app.get("/read/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const presentation = await PresentationModel.read(id);
+
+    return res.json(presentation).status(200);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+app.post("/update", async (req, res) => {
+  try {
+    // const { id } = req.params;
+    // const presentation = await PresentationModel.read(id);
+
+    return res.json({message : "success"}).status(200);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -213,350 +235,15 @@ app.put("/presentations/:id", async (req, res) => {
 // Delete a presentation
 app.delete("/presentations/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const deleteResult = await PresentationModel.del(req,res);
 
-    // Check if presentation exists
-    const exists = await prisma.presentation.findUnique({
-      where: { id },
-    });
-
-    if (!exists) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    // Delete the presentation (cascades to related slides)
-    await prisma.presentation.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "Presentation deleted successfully" });
+    return res.json({ message: "deleted", deleteResult }).status(200);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 });
 
-// ==================== EQ SLIDE ENDPOINTS ====================
 
-// Create a new eq slide for a presentation
-app.post("/presentations/:presentationId/eq-slides", async (req, res) => {
-  try {
-    const { presentationId } = req.params;
-    const { startTime, endTime, type, version, template, sortOrder } = req.body;
-
-    // Check if presentation exists
-    const presentation = await prisma.presentation.findUnique({
-      where: { id: presentationId },
-    });
-
-    if (!presentation) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    const eqSlide = await prisma.eqSlide.create({
-      data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
-        startTime,
-        endTime,
-        type,
-        version,
-        template: template || "",
-        sortOrder: sortOrder || 0,
-        presentation: {
-          connect: { id: presentationId },
-        },
-      },
-    });
-
-    return res.status(201).json(eqSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update an eq slide
-app.put("/eq-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { startTime, endTime, type, version, template, sortOrder } = req.body;
-
-    const updatedSlide = await prisma.eqSlide.update({
-      where: { id },
-      data: {
-        startTime,
-        endTime,
-        type,
-        version,
-        template,
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete an eq slide
-app.delete("/eq-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.eqSlide.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "EqSlide deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== CANVAS SLIDE ENDPOINTS ====================
-
-// Create a new canvas slide for a presentation
-app.post("/presentations/:presentationId/canvas-slides", async (req, res) => {
-  try {
-    const { presentationId } = req.params;
-    const { sortOrder } = req.body;
-
-    // Check if presentation exists
-    const presentation = await prisma.presentation.findUnique({
-      where: { id: presentationId },
-    });
-
-    if (!presentation) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    const canvasSlide = await prisma.canvasSlide.create({
-      data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
-        type: "canvas",
-        sortOrder: sortOrder || 0,
-        presentation: {
-          connect: { id: presentationId },
-        },
-      },
-    });
-
-    return res.status(201).json(canvasSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update a canvas slide
-app.put("/canvas-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { sortOrder } = req.body;
-
-    const updatedSlide = await prisma.canvasSlide.update({
-      where: { id },
-      data: {
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete a canvas slide
-app.delete("/canvas-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.canvasSlide.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "CanvasSlide deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== EQ ITEM ENDPOINTS ====================
-
-// Create a new eq item for a slide
-app.post("/eq-slides/:slideId/items", async (req, res) => {
-  try {
-    const { slideId } = req.params;
-    const {
-      name,
-      content,
-      showAt,
-      hideAt,
-      startTime,
-      endTime,
-      code,
-      type,
-      sortOrder,
-    } = req.body;
-
-    // Check if slide exists
-    const slide = await prisma.eqSlide.findUnique({
-      where: { id: slideId },
-    });
-
-    if (!slide) {
-      return res.status(404).json({ error: "EqSlide not found" });
-    }
-
-    const eqItem = await prisma.eqItem.create({
-      data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
-        name: name || "",
-        content: content || "",
-        showAt,
-        hideAt,
-        startTime,
-        endTime,
-        code: code || "",
-        type,
-        sortOrder: sortOrder || 0,
-        slide: {
-          connect: { id: slideId },
-        },
-      },
-    });
-
-    return res.status(201).json(eqItem);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update an eq item
-app.put("/eq-items/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      name,
-      content,
-      showAt,
-      hideAt,
-      startTime,
-      endTime,
-      code,
-      type,
-      sortOrder,
-    } = req.body;
-
-    const updatedItem = await prisma.eqItem.update({
-      where: { id },
-      data: {
-        name,
-        content,
-        showAt,
-        hideAt,
-        startTime,
-        endTime,
-        code,
-        type,
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedItem);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete an eq item
-app.delete("/eq-items/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.eqItem.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "EqItem deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== SP ENDPOINTS ====================
-
-// Create a new solution point for an eq item
-app.post("/eq-items/:itemId/sps", async (req, res) => {
-  try {
-    const { itemId } = req.params;
-    const { code, type, sortOrder } = req.body;
-
-    // Check if item exists
-    const item = await prisma.eqItem.findUnique({
-      where: { id: itemId },
-    });
-
-    if (!item) {
-      return res.status(404).json({ error: "EqItem not found" });
-    }
-
-    const sp = await prisma.sp.create({
-      data: {
-        code,
-        type,
-        sortOrder: sortOrder || 0,
-        item: {
-          connect: { id: itemId },
-        },
-      },
-    });
-
-    return res.status(201).json(sp);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update a solution point
-app.put("/sps/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { code, type, sortOrder } = req.body;
-
-    const updatedSp = await prisma.sp.update({
-      where: { id },
-      data: {
-        code,
-        type,
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedSp);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete a solution point
-app.delete("/sps/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.sp.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "Solution point deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// Start the server
 app.listen(port, () => {
   console.log(`Presentations API running on port ${port}`);
 });
