@@ -8,13 +8,13 @@ const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 5000;
 const app = express();
 /////////////////////////////////////
-// const corsOptions = {
-//   origin: ['https://taleem-help-backoffice.vercel.app/', 'http://localhost:5173' , 'https://taleem.help'],
-//   methods: 'POST', // Specify the allowed HTTP methods, e.g., 'GET', 'POST', 'PUT', etc.
-//   allowedHeaders: ['Content-Type', 'Authorization'], // Specify the allowed headers
-// };
-// app.use(cors('*', corsOptions)); //working
-app.use(cors());
+const corsOptions = {
+  origin: ['http://localhost:5173', 'https://taleem.help'],
+  methods: 'POST', // Specify the allowed HTTP methods, e.g., 'GET', 'POST', 'PUT', etc.
+  allowedHeaders: ['Content-Type', 'Authorization'], // Specify the allowed headers
+};
+app.use(cors('*', corsOptions)); //working
+// app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 /////////////////////////Models////////////////////////
