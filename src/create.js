@@ -1,80 +1,21 @@
 
 const prisma = require("../db.js");
 const uuid = require("../uuid");
-
+const presentation = require("./presentationData-manual.js")
 const presentationHelpers = require("./presentationHelpers");
 
   async function create(req, res) {
  
     try {
+      debugger;
       // const {
-      //   presentationData,     // Basic presentation data
-      //   eqSlidesData,         // Array of eq slides
-      //   canvasSlidesData      // Array of canvas slides
+        const presentationData = presentation. presentationData;
+        const eqSlidesData = presentation. eqSlidesData;
+        const canvasSlidesData = presentation. canvasSlidesData;
       // } = req.body;
   
 ////////////////////////////////////////////////////////////////////////////////
- const presentationData = {
-  tcode: "newTcode",
-  chapter: 1,
-  exercise: "99.99",
-  filename: "thisisanewname",
-  questionNo: 22,
-  part: 333,
-  name: "somename",
-  questionType: "free",
-  status: "final",
-  sortOrder: 0,
-  comments: "sss",
-  tags: "",
- }
 
- const eqSlidesData = [
-  {
-    startTime : 0,
-    endTime : 10,
-    type : "eqs",
-    version : "basic",
-    template : "",
-    sortOrder : 0,
-    items : [
-      {
-        name: "ccc",
-        content: "ssss",
-        showAt: 0,
-        hideAt: 0,
-        startTime: 0,
-        endTime: 10,
-        code: "This is text",
-        type: "text",
-        sortOrder: 0,
-      }
-    ]
-  }
-]
-
-const canvasSlidesData = [{
-  type: "canvas",
-  sortOrder: 0,
-  items : [
-    {
-      name: "cxcx",
-      opacity: 1,
-      type: "text",
-      color: "red",
-      x: 200,
-      y: 200,
-      rotation: 0,
-      text: "This is the text",
-      fontSize: 30,
-      fontFamily: "Arial",
-      width: 40,
-      height: 100,
-    }
-  ]
-}];
-
-// 
 
 ////////////////////////////////////////////////////////////////////////////////      
       // Validate required data
@@ -106,7 +47,7 @@ const canvasSlidesData = [{
         // return await presentationHelpers.getCompletePresentation(prisma, presentation.id);
       });
   
-      return res.status(201).json(result);
+      return res.status(200).json(result);
     } catch (error) {
       console.error("Error creating presentation:", error);
       return res.status(400).json({ error: error.message });

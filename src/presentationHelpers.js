@@ -26,58 +26,6 @@ const presentationHelpers = {
       });
     },
   
-    // Create solution points for an eqItem
-    async createSolutionPoints(prisma, eqItemId, solutionPoints) {
-      const createdSps = [];
-      for (const spData of solutionPoints) {
-        const sp = await prisma.sp.create({
-          data: {
-            code: spData.code,
-            type: spData.type,
-            sortOrder: spData.sortOrder || 0,
-            item: {
-              connect: { id: eqItemId },
-            },
-          },
-        });
-        createdSps.push(sp);
-      }
-      return createdSps;
-    },
-  
-    // Create items for an eqSlide
-    async createEqItems(prisma, slideId, items) {
-      const createdItems = [];
-      for (const itemData of items) {
-        const eqItem = await prisma.eqItem.create({
-          data: {
-            id: uuid(),
-            uuid: uuid(),
-            name: itemData.name || "",
-            content: itemData.content || "",
-            showAt: itemData.showAt,
-            hideAt: itemData.hideAt,
-            startTime: itemData.startTime,
-            endTime: itemData.endTime,
-            code: itemData.code || "",
-            type: itemData.type,
-            sortOrder: itemData.sortOrder || 0,
-            slide: {
-              connect: { id: slideId },
-            },
-          },
-        });
-  
-        // Create solution points if provided
-        if (itemData.sps && itemData.sps.length > 0) {
-          await this.createSolutionPoints(prisma, eqItem.id, itemData.sps);
-        }
-  
-        createdItems.push(eqItem);
-      }
-      return createdItems;
-    },
-  
     // Create an eq slide with all its items
     async createEqSlide(prisma, presentationId, eqSlideData) {
       const eqSlide = await prisma.eqSlide.create({
@@ -103,12 +51,87 @@ const presentationHelpers = {
   
       return eqSlide;
     },
+
+    // Create items for an eqSlide
+    async createEqItems(prisma, slideId, items) {
+      const createdItems = [];
+      for (const itemData of items) {
+        const eqItem = await prisma.eqItem.create({
+          data: {
+            id: uuid(),
+            uuid: uuid(),
+            name: itemData.name || "",
+            content: itemData.content || "",
+            showAt: itemData.showAt,
+            hideAt: itemData.hideAt,
+            startTime: itemData.startTime,
+            endTime: itemData.endTime,
+            code: itemData.code || "",
+            type: itemData.type,
+            sortOrder: itemData.sortOrder || 0,
+            slide: {
+              connect: { id: slideId },
+            },
+          },
+        });
   
+        // Create solution points if provided
+        if (itemData.sp && itemData.sp.length > 0) {
+          await this.createSolutionPoints(prisma, eqItem.id, itemData.sp);
+        }
+  
+        createdItems.push(eqItem);
+      }
+      return createdItems;
+    },
+    // Create solution points for an eqItem
+    async createSolutionPoints(prisma, eqItemId, solutionPoints) {
+      const createdSps = [];
+      for (const spData of solutionPoints) {
+        const sp = await prisma.sp.create({
+          data: {
+            code: spData.code,
+            type: spData.type,
+            sortOrder: spData.sortOrder || 0,
+            item: {
+              connect: { id: eqItemId },
+            },
+          },
+        });
+        createdSps.push(sp);
+      }
+      return createdSps;
+    },
+    // Create a canvas slide with all its components
+    async createCanvasSlide(prisma, presentationId, canvasSlideData) {
+      const canvasSlide = await prisma.canvasSlide.create({
+        data: {
+          id: uuid(),
+          uuid: uuid(),
+          type: "canvas",
+          sortOrder: canvasSlideData.sortOrder || 0,
+          presentation: {
+            connect: { id: presentationId },
+          },
+        },
+      });
+  
+      // Create slideExtra if provided
+      if (canvasSlideData.slideExtra) {
+        await this.createSlideExtra(prisma, canvasSlide.id, canvasSlideData.slideExtra);
+      }
+  
+      // Create canvas items if provided
+      if (canvasSlideData.items && canvasSlideData.items.length > 0) {
+        await this.createCanvasItems(prisma, canvasSlide.id, canvasSlideData.items);
+      }
+  
+      return canvasSlide;
+    },
     // Create slide extra for a canvas slide
     async createSlideExtra(prisma, slideId, slideExtraData) {
       return await prisma.slideExtra.create({
         data: {
-          type: slideExtraData.type || "background",
           color: slideExtraData.color || "gray",
           opacity: slideExtraData.opacity || 0.7,
           backgroundColor: slideExtraData.backgroundColor || "#363446",
@@ -124,7 +147,17 @@ const presentationHelpers = {
         },
       });
     },
-  
+    // Create all canvas items for a slide
+    async createCanvasItems(prisma, slideId, items) {
+      const createdItems = [];
+      for (const item of items) {
+        const canvasItem = await this.createCanvasItem(prisma, slideId, item);
+        if (canvasItem) {
+          createdItems.push(canvasItem);
+        }
+      }
+      return createdItems;
+    },  
     // Create a specific canvas item based on its type
     async createCanvasItem(prisma, slideId, item) {
       switch (item.type) {
@@ -239,46 +272,6 @@ const presentationHelpers = {
           return null;
       }
     },
-  
-    // Create all canvas items for a slide
-    async createCanvasItems(prisma, slideId, items) {
-      const createdItems = [];
-      for (const item of items) {
-        const canvasItem = await this.createCanvasItem(prisma, slideId, item);
-        if (canvasItem) {
-          createdItems.push(canvasItem);
-        }
-      }
-      return createdItems;
-    },
-  
-    // Create a canvas slide with all its components
-    async createCanvasSlide(prisma, presentationId, canvasSlideData) {
-      const canvasSlide = await prisma.canvasSlide.create({
-        data: {
-          id: uuid(),
-          uuid: uuid(),
-          type: "canvas",
-          sortOrder: canvasSlideData.sortOrder || 0,
-          presentation: {
-            connect: { id: presentationId },
-          },
-        },
-      });
-  
-      // Create slideExtra if provided
-      if (canvasSlideData.slideExtra) {
-        await this.createSlideExtra(prisma, canvasSlide.id, canvasSlideData.slideExtra);
-      }
-  
-      // Create canvas items if provided
-      if (canvasSlideData.items && canvasSlideData.items.length > 0) {
-        await this.createCanvasItems(prisma, canvasSlide.id, canvasSlideData.items);
-      }
-  
-      return canvasSlide;
-    },
-  
     // Fetch the complete presentation with all related data
     async getCompletePresentation(prisma, presentationId) {
       return await prisma.presentation.findUnique({
