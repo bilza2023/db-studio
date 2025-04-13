@@ -33,10 +33,8 @@ model Presentation {
 model EqSlide {
   id          String    @id
   uuid        String    @unique
-  startTime   Int
-  endTime     Int
+  period      Int?      @default(10)
   type        String
-  version     String
   template    String    @default("")
   sortOrder   Int       @default(0) 
   
@@ -57,8 +55,7 @@ model EqItem {
   name        String?    @default("")
   content     String    @default("")
   showAt      Int
-  startTime   Int
-  endTime     Int
+  period      Int       @default(10)
   code        String    @default("")
   type        String
   sortOrder   Int?      @default(0)
@@ -96,8 +93,7 @@ model CanvasSlide {
   type            String    @default("canvas")
   sortOrder       Int       @default(0)
   name            String?
-  startTime       Int       @default(0)
-  endTime         Int       @default(10)
+  period          Int?       @default(10)
   template        String?
   // Relationship to parent presentation  
   presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)

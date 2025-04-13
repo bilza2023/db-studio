@@ -4,6 +4,7 @@ const presentationHelpers = require("./presentationHelpers.js");
 
 async function updatePresentation(prisma, req, res) {
     try {
+      debugger;
       const {
         presentationId,
         presentationData,

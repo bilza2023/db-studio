@@ -32,10 +32,8 @@ const presentationHelpers = {
         data: {
           id: uuid(),
           uuid: uuid(),
-          startTime: eqSlideData.startTime,
-          endTime: eqSlideData.endTime,
+          period: eqSlideData.period,
           type: eqSlideData.type,
-          version: eqSlideData.version,
           template: eqSlideData.template || "",
           sortOrder: eqSlideData.sortOrder || 0,
           presentation: {
@@ -63,10 +61,9 @@ const presentationHelpers = {
             name: itemData.name || "",
             content: itemData.content || "",
             showAt: itemData.showAt,
-            startTime: itemData.startTime,
-            endTime: itemData.endTime,
             code: itemData.code || "",
             type: itemData.type,
+            period: itemData.period,
             sortOrder: itemData.sortOrder || 0,
             slide: {
               connect: { id: slideId },
@@ -109,6 +106,9 @@ const presentationHelpers = {
           uuid: uuid(),
           type: "canvas",
           sortOrder: canvasSlideData.sortOrder || 0,
+          period: canvasSlideData.period,
+          sortOrder: canvasSlideData.sortOrder || 0,
+          template: canvasSlideData.template || "",
           presentation: {
             connect: { id: presentationId },
           },
@@ -469,6 +469,6 @@ const presentationHelpers = {
       }
     }
   
-  };
+};
   
   module.exports  = presentationHelpers;

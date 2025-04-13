@@ -13,7 +13,7 @@ const corsOptions = {
   methods: 'POST', // Specify the allowed HTTP methods, e.g., 'GET', 'POST', 'PUT', etc.
   allowedHeaders: ['Content-Type', 'Authorization'], // Specify the allowed headers
 };
-app.use(cors('*', corsOptions)); //working
+app.use(cors('*', corsOptions)); 
 // app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
