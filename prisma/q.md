@@ -1,1071 +1,893 @@
 
-Here is my prism schema and my router that i got made by you
+I have a mongodb data in json format that I want to convert into sqlite database. I have every thing ready and finally I want you to write me a node.js function that does this.
 
-Requirement:
-===========
-I simply want to create a new presentation (including all its slide types). I mean that i want to create a presentation with 2 slides 1: eqSlide(with its items and sp items) and 2: canvasSlide. the canvas slide to have its items and slideExtra 
+The data is in array of objects each object is a "presentation" which contains slides. slides can be of 2 types "canvas" and "eqs". 
 
-write me a simple function / route that takes in the data and create a new presentation.
-explain the incomming data to me or provide the fake data .
-generator client {
-  provider = "prisma-client-js"
-}
+For each presentation
+1: we have to create the presentation
+2: For "canvas" slides we have to 1: create canvas items 2: create slideExtra
+3: For "eqs" we have to 1: create the slide 2: create eqItems and 3: create sp "solution points" 
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-// Main presentation model (top level content)
-model Presentation {
-  id           String   @id
-  tcode        String
-  chapter      Int
-  exercise     String
-  filename     String
-  questionNo   Int
-  part         Int
-  name         String   @default("")
-  questionType String
-  status       String
-  sortOrder    Int      @default(0)
-  comments     String   @default("")
-  tags         String   @default("[]") // Stored as JSON string
-  
-  // Relationships to slides
-  eqSlides     EqSlide[]
-  canvasSlides CanvasSlide[]
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-// EqSlide model for equation slides
-model EqSlide {
-  id          String    @id
-  uuid        String    @unique
-  startTime   Int
-  endTime     Int
-  type        String
-  version     String
-  template    String    @default("")
-  sortOrder   Int       @default(0) 
-  
-  // Relationship to parent presentation
-  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
-  presentationId String
-  
-  // Relationship to items
-  items       EqItem[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-// Canvas slide model 
-model CanvasSlide {
-  id              String    @id
-  uuid            String    @unique
-  type            String    @default("canvas")
-  sortOrder       Int       @default(0)
-  
-  // Relationship to parent presentation  
-  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
-  presentationId String
-  
-  // Relationship to slideExtra (1-to-1)
-  slideExtra    SlideExtra?
-  
-  // Relationships to canvas items
-  textItems      CanvasText[]
-  rectangleItems CanvasRectangle[]
-  circleItems    CanvasCircle[]
-  imageItems     CanvasImage[]
-  lineItems      CanvasLine[]
-  rayItems       CanvasRay[]
-  dotItems       CanvasDot[]
-  ellipseItems   CanvasEllipse[]
-  iconItems      CanvasIcon[]
-  listItems      CanvasList[]
-  pieChartItems  CanvasPieChart[]
-  angleItems     CanvasAngle[]
-  spriteItems    CanvasSprite[]
-  triangleItems  CanvasTriangle[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-// SlideExtra model (1-to-1 relationship with CanvasSlide)
-model SlideExtra {
-  id                String    @id @default(cuid())
-  type              String    @default("background")
-  color             String    @default("gray")
-  opacity           Float     @default(0.7)
-  backgroundColor   String    @default("#363446")
-  cellHeight        Float     @default(25)
-  cellWidth         Float     @default(25)
-  backgroundImage   String?
-  showGrid          Boolean   @default(false)
-  gridLineWidth     Float     @default(1)
-  gridLineColor     String    @default("black")
-  
-  // Relationship to canvas slide (1-to-1)
-  slide             CanvasSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId           String      @unique // This makes it a 1-to-1 relationship
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-// Base fields for all canvas items
-// Note: These are common fields shared across all item types
-model CanvasText {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("text")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  x           Float
-  y           Float
-  rotation    Float     @default(0)
-  
-  // Text-specific fields
-  text        String
-  fontSize    Float
-  fontFamily  String
-  width       Float
-  height      Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasRectangle {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("rectangle")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  x           Float
-  y           Float
-  rotation    Float     @default(0)
-  
-  // Rectangle-specific fields
-  width       Float
-  height      Float
-  filled      Boolean   @default(false)
-  lineWidth   Float     @default(1)
-  dash        Float     @default(0)
-  gap         Float     @default(0)
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasCircle {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("circle")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  x           Float
-  y           Float
-  
-  // Circle-specific fields
-  radius      Float
-  startAngle  Float
-  endAngle    Float
-  lineWidth   Float
-  dash        Float
-  gap         Float
-  filled      Boolean
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasImage {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("image")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String    @default("")
-  x           Float
-  y           Float
-  rotation    Float     @default(0)
-  
-  // Image-specific fields
-  src         String
-  width       Float
-  height      Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasLine {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("line")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  rotation    Float     @default(0)
-  
-  // Line-specific fields
-  x1          Float
-  y1          Float
-  x2          Float
-  y2          Float
-  lineWidth   Float
-  dash        Float
-  gap         Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasRay {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("ray")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // Ray-specific fields
-  x1          Float
-  y1          Float
-  x2          Float
-  y2          Float
-  lineWidth   Float
-  arrowWidth  Float
-  arrowHeight Float
-  startArrow  Boolean
-  endArrow    Boolean
-  dash        Float
-  gap         Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasDot {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("dot")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // Dot-specific fields
-  x           Float
-  y           Float
-  label       String
-  radius      Float
-  textColor   String
-  textSize    Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasEllipse {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("ellipse")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // Ellipse-specific fields
-  x           Float
-  y           Float
-  radiusX     Float
-  radiusY     Float
-  rotation    Float
-  startAngle  Float
-  endAngle    Float
-  lineWidth   Float
-  filled      Boolean
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasIcon {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("icon")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // Icon-specific fields
-  x           Float
-  y           Float
-  text        String
-  fontSize    Float
-  iconSize    Float
-  fontFamily  String
-  icon        String
-  showBg      Boolean
-  iconOnTop   Boolean
-  iconErrorX  Float
-  iconErrorY  Float
-  bgColor     String
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasList {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("list")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // List-specific fields
-  x           Float
-  y           Float
-  listItems   String    // Stored as JSON array string
-  fontSize    Float
-  fontFamily  String
-  lineGap     Float
-  indentation Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasPieChart {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("piechart")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  
-  // PieChart-specific fields
-  x           Float
-  y           Float
-  radius      Float
-  chartData   String    // Stored as JSON string for data array
-  showLabels  Boolean
-  labelFontSize Float
-  labelColor  String
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasAngle {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("angle")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // Angle-specific fields
-  x           Float
-  y           Float
-  radius      Float
-  ticks       Int
-  startAngle  Float
-  endAngle    Float
-  lineWidth   Float
-  showOrigin  Boolean
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasSprite {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("sprite")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  
-  // Sprite-specific fields
-  src         String
-  selectedItem String
-  x           Float
-  y           Float
-  width       Float
-  height      Float
-  rotation    Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model CanvasTriangle {
-  id          String    @id @default(cuid())
-  uuid        String    @unique
-  type        String    @default("triangle")
-  name        String    @default("")
-  opacity     Float     @default(1)
-  color       String
-  
-  // Triangle-specific fields
-  x1          Float
-  y1          Float
-  x2          Float
-  y2          Float
-  x3          Float
-  y3          Float
-  rotation    Float
-  lineWidth   Float
-  filled      Boolean
-  dash        Float
-  gap         Float
-  
-  // Relationship to parent slide
-  slide       CanvasSlide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-// EqItem model for items within equation slides
-model EqItem {
-  id          String    @id
-  uuid        String    @unique
-  name        String    @default("")
-  content     String    @default("")
-  showAt      Int
-  hideAt      Int
-  startTime   Int
-  endTime     Int
-  code        String    @default("")
-  type        String
-  sortOrder   Int       @default(0)
-  
-  // Relationship to parent slide
-  slide       EqSlide   @relation(fields: [slideId], references: [id], onDelete: Cascade)
-  slideId     String
-  
-  // Relationship to solution points
-  sps         Sp[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-// Solution Points (sp) model
-model Sp {
-  id          String    @id @default(cuid())
-  code        String
-  type        String
-  sortOrder   Int       @default(0)
-  
-  // Relationship to parent item
-  item        EqItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  itemId      String
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+==>(Important it is possible that there may not be any canvas slides in the data but we still need code for it) BUT concentrate more on eqs slides
 
+==> some fields like imagesUrl,startTime , endTime are removed to keep that in mind
 
-const { PrismaClient } = require("@prisma/client");
-const express = require("express");
-const { v4: uuidv4 } = require("uuid");
+here is an example presentation from data
 
-const prisma = new PrismaClient();
-const app = express();
-const port = 5000;
-
-app.use(express.json());
-
-// Root endpoint
-app.get("/", async(req, res) => {
-  // // async function deleteAllCanvasSlides(prisma: PrismaClient) {
-  //   try {
-  //     const deletedCanvasSlides = await prisma.canvasSlide.deleteMany({});
-
-  //   return res.json({ message: `Successfully deleted ${deletedCanvasSlides.count} CanvasSlide(s).` }).status(200);
-  //   } catch (error) {
-  //     console.error("Error deleting CanvasSlides:", error);
-  //   }
-  
-});
-
-// Health check endpoint
-app.get("/ping", async (req, res) => {
-  try {
-    const count = await prisma.presentation.count();
-    return res.json({ message: "pong", count }).status(200);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== PRESENTATION ENDPOINTS ====================
-
-// Create a new presentation
-app.post("/presentations", async (req, res) => {
-  try {
-    const {
-      tcode,
-      chapter,
-      exercise,
-      filename,
-      questionNo,
-      part,
-      name,
-      questionType,
-      status,
-      sortOrder,
-      comments,
-      tags,
-    } = req.body;
-
-    const presentation = await prisma.presentation.create({
-      data: {
-        id: uuidv4(),
-        tcode,
-        chapter,
-        exercise,
-        filename,
-        questionNo,
-        part,
-        name: name || "",
-        questionType,
-        status,
-        sortOrder: sortOrder || 0,
-        comments: comments || "",
-        tags: tags || "[]",
+  {
+    "id": "6779fd8c808e55c288cb54ce",
+    "tcode": "fbise9math",
+    "chapter": 2,
+    "exercise": "2.1",
+    "filename": "fbise9math2024_ch_2_ex_2.1_q_1",
+    "questionNo": 1,
+    "part": 0,
+    "name": "",
+    "questionType": "paid",
+    "status": "empty",
+    "tags": [],
+    "sortOrder": 1,
+    "comments": "",
+    "slides": [
+      {
+        "id": "6779fd8c808e55c288cb54cf",
+        "uuid": "a3064cc9-8ef9-4ae4-9d23-552059df9f59",
+        "startTime": 0,
+        "endTime": 10,
+        "type": "eqs",
+        "version": "basic",
+        "template": "",
+        "imagesUrl": "https://taleem-media.blr1.cdn.digitaloceanspaces.com/bucket/",
+        "items": [
+          {
+            "id": "6779fd8c808e55c288cb54d0",
+            "uuid": "78c51066-d6b3-45f1-8226-4771c5b33525",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 0,
+            "endTime": 20,
+            "code": "Write the following in scientific notation.",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d1",
+            "uuid": "665a6608-e332-4591-81be-fbcb1c0b0dbe",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 20,
+            "endTime": 51,
+            "code": "Part 1 : 0.000 53407",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d2",
+            "uuid": "4d5efd2e-e779-4845-8228-eeff8b32921a",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 51,
+            "endTime": 77,
+            "code": "0.000    53407",
+            "type": "text",
+            "sp": [
+              {
+                "code": "Move the decimal towards right and put it after the first non zero number",
+                "type": "text"
+              }
+            ]
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d3",
+            "uuid": "7938dc54-1a8a-4ffc-8ece-bb31c273ca7c",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 77,
+            "endTime": 0,
+            "code": "0.0005 # 3407",
+            "type": "text",
+            "sp": [
+              {
+                "code": "Count the number of digits between the original location of decimal and the new location.",
+                "type": "text"
+              },
+              {
+                "code": "In this case it is 4 towards right",
+                "type": "heading"
+              }
+            ]
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d4",
+            "uuid": "46750856-7271-45a0-8139-db3930798275",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 0,
+            "endTime": 139,
+            "code": "5.3407 * 10",
+            "type": "code",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d5",
+            "uuid": "e25010cc-dbbc-4a07-8862-9742d74175db",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 139,
+            "endTime": 163,
+            "code": "5.3407 * 10^4",
+            "type": "code",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d6",
+            "uuid": "6567a465-a49b-4d6e-a441-b847d8e62b0a",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 163,
+            "endTime": 0,
+            "code": "5.3407 * 10^{-4}",
+            "type": "code",
+            "sp": [
+              {
+                "code": "Why -4",
+                "type": "heading"
+              },
+              {
+                "code": "The original number was 0.xx the new number is 5.xx so when we return it to original form we need to make it smaller again hence the -4",
+                "type": "text"
+              }
+            ]
+          },
+          {
+            "id": "677e12873cc9ccd50a8d6b68",
+            "uuid": "4972a193-ce27-4e73-8430-339a18080bc0",
+            "name": "cbd9e2a1",
+            "content": "",
+            "showAt": 0,
+            "hideAt": null,
+            "startTime": 0,
+            "endTime": 10,
+            "code": "",
+            "type": "txt",
+            "sp": []
+          }
+        ]
       },
-    });
+      {
+        "id": "6779fd8c808e55c288cb54cf",
+        "uuid": "a3064cc9-8ef9-4ae4-9d23-552059df9f59",
+        "startTime": 10,
+        "endTime": 20,
+        "type": "eqs",
+        "version": "basic",
+        "template": "",
+        "imagesUrl": "https://taleem-media.blr1.cdn.digitaloceanspaces.com/bucket/",
+        "items": [
+          {
+            "id": "6779fd8c808e55c288cb54d0",
+            "uuid": "78c51066-d6b3-45f1-8226-4771c5b33525",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 10,
+            "endTime": 20,
+            "code": "Write the following in scientific notation.",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d1",
+            "uuid": "665a6608-e332-4591-81be-fbcb1c0b0dbe",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 20,
+            "endTime": 0,
+            "code": "Part (II) ",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "677e12873cc9ccd50a8d6b6c",
+            "uuid": "e72518ac-44f1-4eee-99e8-524dee688d61",
+            "name": "2c0f5b0f",
+            "content": "",
+            "showAt": 0,
+            "hideAt": null,
+            "startTime": 0,
+            "endTime": 0,
+            "code": "53400000",
+            "type": "txt",
+            "sp": []
+          },
+          {
+            "id": "677e12873cc9ccd50a8d6b6d",
+            "uuid": "8b6f31d8-f699-4054-9900-cbc50ecfd79a",
+            "name": "4e8453ad",
+            "content": "",
+            "showAt": 0,
+            "hideAt": null,
+            "startTime": 0,
+            "endTime": 139,
+            "code": "=5.34\\times10^7",
+            "type": "code",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d5",
+            "uuid": "e25010cc-dbbc-4a07-8862-9742d74175db",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 139,
+            "endTime": 20,
+            "code": "=5.34\\times10^7",
+            "type": "code",
+            "sp": []
+          }
+        ]
+      },
+      {
+        "id": "6779fd8c808e55c288cb54cf",
+        "uuid": "a3064cc9-8ef9-4ae4-9d23-552059df9f59",
+        "startTime": 20,
+        "endTime": 30,
+        "type": "eqs",
+        "version": "basic",
+        "template": "",
+        "imagesUrl": "https://taleem-media.blr1.cdn.digitaloceanspaces.com/bucket/",
+        "items": [
+          {
+            "id": "6779fd8c808e55c288cb54d0",
+            "uuid": "78c51066-d6b3-45f1-8226-4771c5b33525",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 20,
+            "endTime": 20,
+            "code": "Write the following in scientific notation.",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d1",
+            "uuid": "665a6608-e332-4591-81be-fbcb1c0b0dbe",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 20,
+            "endTime": 0,
+            "code": "Part(III)",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "677e12873cc9ccd50a8d6b72",
+            "uuid": "83200fe1-011f-4887-8af4-50bb934bc02e",
+            "name": "060aac32",
+            "content": "",
+            "showAt": 0,
+            "hideAt": null,
+            "startTime": 0,
+            "endTime": 51,
+            "code": "0.000000000012",
+            "type": "txt",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d2",
+            "uuid": "4d5efd2e-e779-4845-8228-eeff8b32921a",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 51,
+            "endTime": 77,
+            "code": "0.00000000001   2",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d3",
+            "uuid": "7938dc54-1a8a-4ffc-8ece-bb31c273ca7c",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 77,
+            "endTime": 30,
+            "code": "1.2\\times 10^-{11}",
+            "type": "text",
+            "sp": []
+          }
+        ]
+      },
+      {
+        "id": "6779fd8c808e55c288cb54cf",
+        "uuid": "a3064cc9-8ef9-4ae4-9d23-552059df9f59",
+        "startTime": 30,
+        "endTime": 40,
+        "type": "eqs",
+        "version": "basic",
+        "template": "",
+        "imagesUrl": "https://taleem-media.blr1.cdn.digitaloceanspaces.com/bucket/",
+        "items": [
+          {
+            "id": "6779fd8c808e55c288cb54d0",
+            "uuid": "78c51066-d6b3-45f1-8226-4771c5b33525",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 30,
+            "endTime": 20,
+            "code": "Write the following in scientific notation.",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d1",
+            "uuid": "665a6608-e332-4591-81be-fbcb1c0b0dbe",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 20,
+            "endTime": 51,
+            "code": "Part (IV)",
+            "type": "text",
+            "sp": []
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d2",
+            "uuid": "4d5efd2e-e779-4845-8228-eeff8b32921a",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 51,
+            "endTime": 77,
+            "code": "2.5326",
+            "type": "text",
+            "sp": [
+              {
+                "code": "Move the decimal towards right and put it after the first non zero number",
+                "type": "text"
+              }
+            ]
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d3",
+            "uuid": "7938dc54-1a8a-4ffc-8ece-bb31c273ca7c",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 77,
+            "endTime": 139,
+            "code": "2.5326\\times 10^0",
+            "type": "code",
+            "sp": [
+              {
+                "code": "[[\"10^0=1\"]]",
+                "type": "tableCode"
+              }
+            ]
+          },
+          {
+            "id": "6779fd8c808e55c288cb54d5",
+            "uuid": "e25010cc-dbbc-4a07-8862-9742d74175db",
+            "name": "",
+            "content": "",
+            "showAt": 0,
+            "hideAt": 0,
+            "startTime": 139,
+            "endTime": 40,
+            "code": "",
+            "type": "code",
+            "sp": []
+          }
+        ]
+      }
+    ]
+  },
 
-    return res.status(201).json(presentation);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
 
-// Get all presentations with pagination
-app.get("/presentations", async (req, res) => {
-  try {
-    const { page = 1, limit = 10, status, questionType } = req.query;
-    const skip = (page - 1) * limit;
 
-    // Build filter object
-    const where = {};
-    if (status) where.status = status;
-    if (questionType) where.questionType = questionType;
+  here are prism functions for this
 
-    const presentations = await prisma.presentation.findMany({
-      where,
-      skip: Number(skip),
-      take: Number(limit),
-      orderBy: { createdAt: "desc" },
-      include: {
-        // Include count of related slides
-        _count: {
-          select: {
-            eqSlides: true,
-            canvasSlides: true,
+const uuid = require("../../../uuid");
+
+// Helper functions for creating presentation components
+const presentationHelpers = {
+
+    // Create a presentation record
+    async createPresentation(prisma, presentationData) {
+      // debugger;
+      return await prisma.presentation.create({
+        data: {
+          id: uuid(),
+          tcode: presentationData.tcode,
+          chapter: presentationData.chapter,
+          exercise: presentationData.exercise,
+          filename: presentationData.filename,
+          questionNo: presentationData.questionNo,
+          part: presentationData.part,
+          name: presentationData.name || "",
+          questionType: presentationData.questionType,
+          status: presentationData.status,
+          sortOrder: presentationData.sortOrder || 0,
+          comments: presentationData.comments || "",
+          tags: presentationData.tags || "[]",
+        },
+      });
+    },
+  
+    // Create an eq slide with all its items
+    async createEqSlide(prisma, presentationId, eqSlideData) {
+      const eqSlide = await prisma.eqSlide.create({
+        data: {
+          id: uuid(),
+          uuid: uuid(),
+          period: eqSlideData.period,
+          type: eqSlideData.type,
+          template: eqSlideData.template || "",
+          sortOrder: eqSlideData.sortOrder || 0,
+          presentation: {
+            connect: { id: presentationId },
           },
         },
-      },
-    });
+      });
+  
+      // Create items if provided
+      if (eqSlideData.items && eqSlideData.items.length > 0) {
+        await this.createEqItems(prisma, eqSlide.id, eqSlideData.items);
+      }
+  
+      return eqSlide;
+    },
 
-    const total = await prisma.presentation.count({ where });
-
-    return res.json({
-      data: presentations,
-      meta: {
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        pages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// Get presentation by ID with all related data
-app.get("/presentations/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const presentation = await prisma.presentation.findUnique({
-      where: { id },
-      include: {
-        eqSlides: {
-          include: {
-            items: {
-              include: {
-                sps: true,
-              },
-              orderBy: { sortOrder: "asc" },
+    // Create items for an eqSlide
+    async createEqItems(prisma, slideId, items) {
+      const createdItems = [];
+      for (const itemData of items) {
+        const eqItem = await prisma.eqItem.create({
+          data: {
+            id: uuid(),
+            uuid: uuid(),
+            name: itemData.name || "",
+            content: itemData.content || "",
+            showAt: itemData.showAt,
+            code: itemData.code || "",
+            type: itemData.type,
+            period: itemData.period,
+            sortOrder: itemData.sortOrder || 0,
+            slide: {
+              connect: { id: slideId },
             },
           },
-          orderBy: { sortOrder: "asc" },
+        });
+  
+        // Create solution points if provided
+        if (itemData.sp && itemData.sp.length > 0) {
+          await this.createSolutionPoints(prisma, eqItem.id, itemData.sp);
+        }
+  
+        createdItems.push(eqItem);
+      }
+      return createdItems;
+    },
+    // Create solution points for an eqItem
+    async createSolutionPoints(prisma, eqItemId, solutionPoints) {
+      const createdSps = [];
+      for (const spData of solutionPoints) {
+        const sp = await prisma.sp.create({
+          data: {
+            code: spData.code,
+            type: spData.type,
+            sortOrder: spData.sortOrder || 0,
+            item: {
+              connect: { id: eqItemId },
+            },
+          },
+        });
+        createdSps.push(sp);
+      }
+      return createdSps;
+    },
+    // Create a canvas slide with all its components
+    async createCanvasSlide(prisma, presentationId, canvasSlideData) {
+      const canvasSlide = await prisma.canvasSlide.create({
+        data: {
+          id: uuid(),
+          uuid: uuid(),
+          type: "canvas",
+          sortOrder: canvasSlideData.sortOrder || 0,
+          period: canvasSlideData.period,
+          sortOrder: canvasSlideData.sortOrder || 0,
+          template: canvasSlideData.template || "",
+          presentation: {
+            connect: { id: presentationId },
+          },
         },
-        canvasSlides: {
-          orderBy: { sortOrder: "asc" },
+      });
+  
+      // Create slideExtra if provided
+      if (canvasSlideData.slideExtra) {
+        await this.createSlideExtra(prisma, canvasSlide.id, canvasSlideData.slideExtra);
+      }
+  
+      // Create canvas items if provided
+      if (canvasSlideData.items && canvasSlideData.items.length > 0) {
+        await this.createCanvasItems(prisma, canvasSlide.id, canvasSlideData.items);
+      }
+  
+      return canvasSlide;
+    },
+    // Create slide extra for a canvas slide
+    async createSlideExtra(prisma, slideId, slideExtraData) {
+      return await prisma.slideExtra.create({
+        data: {
+          color: slideExtraData.color || "gray",
+          opacity: slideExtraData.opacity || 0.7,
+          backgroundColor: slideExtraData.backgroundColor || "#363446",
+          cellHeight: slideExtraData.cellHeight || 25,
+          cellWidth: slideExtraData.cellWidth || 25,
+          backgroundImage: slideExtraData.backgroundImage,
+          showGrid: slideExtraData.showGrid || false,
+          gridLineWidth: slideExtraData.gridLineWidth || 1,
+          gridLineColor: slideExtraData.gridLineColor || "black",
+          slide: {
+            connect: { id: slideId },
+          },
         },
-      },
-    });
-
-    if (!presentation) {
-      return res.status(404).json({ error: "Presentation not found" });
+      });
+    },
+    // Create all canvas items for a slide
+    async createCanvasItems(prisma, slideId, items) {
+      const createdItems = [];
+      for (const item of items) {
+        const canvasItem = await this.createCanvasItem(prisma, slideId, item);
+        if (canvasItem) {
+          createdItems.push(canvasItem);
+        }
+      }
+      return createdItems;
+    },  
+    // Create a specific canvas item based on its type
+// Create a specific canvas item based on its type
+// Create a specific canvas item based on its type
+    async createCanvasItem(prisma, slideId, item) {
+      switch (item.type) {
+        case "text":
+          return await prisma.canvasText.create({
+            data: {
+              uuid: uuid(),
+              type: "text",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              rotation: item.rotation || 0,
+              text: item.text,
+              fontSize: item.fontSize,
+              fontFamily: item.fontFamily,
+              width: item.width,
+              height: item.height,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "rectangle":
+          return await prisma.canvasRectangle.create({
+            data: {
+              uuid: uuid(),
+              type: "rectangle",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              rotation: item.rotation || 0,
+              width: item.width,
+              height: item.height,
+              filled: item.filled || false,
+              lineWidth: item.lineWidth || 1,
+              dash: item.dash || 0,
+              gap: item.gap || 0,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "circle":
+          return await prisma.canvasCircle.create({
+            data: {
+              uuid: uuid(),
+              type: "circle",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              radius: item.radius,
+              startAngle: item.startAngle,
+              endAngle: item.endAngle,
+              lineWidth: item.lineWidth,
+              dash: item.dash,
+              gap: item.gap,
+              filled: item.filled,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "line":
+          return await prisma.canvasLine.create({
+            data: {
+              uuid: uuid(),
+              type: "line",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              rotation: item.rotation || 0,
+              x1: item.x1,
+              y1: item.y1,
+              x2: item.x2,
+              y2: item.y2,
+              lineWidth: item.lineWidth,
+              dash: item.dash,
+              gap: item.gap,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "ray":
+          return await prisma.canvasRay.create({
+            data: {
+              uuid: uuid(),
+              type: "ray",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x1: item.x1,
+              y1: item.y1,
+              x2: item.x2,
+              y2: item.y2,
+              lineWidth: item.lineWidth,
+              arrowWidth: item.arrowWidth,
+              arrowHeight: item.arrowHeight,
+              startArrow: item.startArrow,
+              endArrow: item.endArrow,
+              dash: item.dash,
+              gap: item.gap,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "image":
+          return await prisma.canvasImage.create({
+            data: {
+              uuid: uuid(),
+              type: "image",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color || "",
+              x: item.x,
+              y: item.y,
+              rotation: item.rotation || 0,
+              src: item.src,
+              width: item.width,
+              height: item.height,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "dot":
+          return await prisma.canvasDot.create({
+            data: {
+              uuid: uuid(),
+              type: "dot",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              labelX: item.labelX,
+              labelY: item.labelY,
+              label: item.label,
+              radius: item.radius,
+              textColor: item.textColor,
+              textSize: item.textSize,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "ellipse":
+          return await prisma.canvasEllipse.create({
+            data: {
+              uuid: uuid(),
+              type: "ellipse",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              radiusX: item.radiusX,
+              radiusY: item.radiusY,
+              rotation: item.rotation,
+              startAngle: item.startAngle,
+              endAngle: item.endAngle,
+              lineWidth: item.lineWidth,
+              filled: item.filled,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "icon":
+          return await prisma.canvasIcon.create({
+            data: {
+              uuid: uuid(),
+              type: "icon",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              text: item.text,
+              fontSize: item.fontSize,
+              iconSize: item.iconSize,
+              fontFamily: item.fontFamily,
+              icon: item.icon,
+              showBg: item.showBg,
+              iconOnTop: item.iconOnTop,
+              iconErrorX: item.iconErrorX,
+              iconErrorY: item.iconErrorY,
+              bgColor: item.bgColor,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "list":
+        
+          return await prisma.canvasList.create({
+            data: {
+              uuid: uuid(),
+              type: "list",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              listArray: item.listArray,
+              fontSize: item.fontSize,
+              fontFamily: item.fontFamily,
+              lineGap: item.lineGap,
+              indentation: item.indentation,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "piechart":
+          return await prisma.canvasPieChart.create({
+            data: {
+              uuid: uuid(),
+              type: "piechart",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              x: item.x,
+              y: item.y,
+              radius: item.radius,
+              data: item.data,
+              showLabels: item.showLabels,
+              labelFontSize: item.labelFontSize,
+              labelColor: item.labelColor,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "angle":
+          return await prisma.canvasAngle.create({
+            data: {
+              uuid: uuid(),
+              type: "angle",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x: item.x,
+              y: item.y,
+              radius: item.radius,
+              ticks: item.ticks,
+              startAngle: item.startAngle,
+              endAngle: item.endAngle,
+              lineWidth: item.lineWidth,
+              showOrigin: item.showOrigin,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "sprite":
+          return await prisma.canvasSprite.create({
+            data: {
+              uuid: uuid(),
+              type: "sprite",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              src: item.src,
+              selectedItem: item.selectedItem,
+              x: item.x,
+              y: item.y,
+              width: item.width,
+              height: item.height,
+              rotation: item.rotation,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        case "triangle":
+          return await prisma.canvasTriangle.create({
+            data: {
+              uuid: uuid(),
+              type: "triangle",
+              name: item.name || "",
+              opacity: item.opacity || 1,
+              color: item.color,
+              x1: item.x1,
+              y1: item.y1,
+              x2: item.x2,
+              y2: item.y2,
+              x3: item.x3,
+              y3: item.y3,
+              rotation: item.rotation,
+              lineWidth: item.lineWidth,
+              filled: item.filled,
+              dash: item.dash,
+              gap: item.gap,
+              slide: {
+                connect: { id: slideId },
+              },
+            },
+          });
+        default:
+          console.warn(`Unknown canvas item type: ${item.type}`);
+          return null;
+      }
     }
+  
+};
+  
+  module.exports  = presentationHelpers;
 
-    return res.json(presentation);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// Update a presentation
-app.put("/presentations/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      tcode,
-      chapter,
-      exercise,
-      filename,
-      questionNo,
-      part,
-      name,
-      questionType,
-      status,
-      sortOrder,
-      comments,
-      tags,
-    } = req.body;
-
-    // Check if presentation exists
-    const exists = await prisma.presentation.findUnique({
-      where: { id },
-    });
-
-    if (!exists) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    const updatedPresentation = await prisma.presentation.update({
-      where: { id },
-      data: {
-        tcode,
-        chapter,
-        exercise,
-        filename,
-        questionNo,
-        part,
-        name,
-        questionType,
-        status,
-        sortOrder,
-        comments,
-        tags,
-      },
-    });
-
-    return res.json(updatedPresentation);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete a presentation
-app.delete("/presentations/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Check if presentation exists
-    const exists = await prisma.presentation.findUnique({
-      where: { id },
-    });
-
-    if (!exists) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    // Delete the presentation (cascades to related slides)
-    await prisma.presentation.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "Presentation deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== EQ SLIDE ENDPOINTS ====================
-
-// Create a new eq slide for a presentation
-app.post("/presentations/:presentationId/eq-slides", async (req, res) => {
-  try {
-    const { presentationId } = req.params;
-    const { startTime, endTime, type, version, template, sortOrder } = req.body;
-
-    // Check if presentation exists
-    const presentation = await prisma.presentation.findUnique({
-      where: { id: presentationId },
-    });
-
-    if (!presentation) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    const eqSlide = await prisma.eqSlide.create({
-      data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
-        startTime,
-        endTime,
-        type,
-        version,
-        template: template || "",
-        sortOrder: sortOrder || 0,
-        presentation: {
-          connect: { id: presentationId },
-        },
-      },
-    });
-
-    return res.status(201).json(eqSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update an eq slide
-app.put("/eq-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { startTime, endTime, type, version, template, sortOrder } = req.body;
-
-    const updatedSlide = await prisma.eqSlide.update({
-      where: { id },
-      data: {
-        startTime,
-        endTime,
-        type,
-        version,
-        template,
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete an eq slide
-app.delete("/eq-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.eqSlide.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "EqSlide deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== CANVAS SLIDE ENDPOINTS ====================
-
-// Create a new canvas slide for a presentation
-app.post("/presentations/:presentationId/canvas-slides", async (req, res) => {
-  try {
-    const { presentationId } = req.params;
-    const { sortOrder } = req.body;
-
-    // Check if presentation exists
-    const presentation = await prisma.presentation.findUnique({
-      where: { id: presentationId },
-    });
-
-    if (!presentation) {
-      return res.status(404).json({ error: "Presentation not found" });
-    }
-
-    const canvasSlide = await prisma.canvasSlide.create({
-      data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
-        type: "canvas",
-        sortOrder: sortOrder || 0,
-        presentation: {
-          connect: { id: presentationId },
-        },
-      },
-    });
-
-    return res.status(201).json(canvasSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update a canvas slide
-app.put("/canvas-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { sortOrder } = req.body;
-
-    const updatedSlide = await prisma.canvasSlide.update({
-      where: { id },
-      data: {
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedSlide);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete a canvas slide
-app.delete("/canvas-slides/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.canvasSlide.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "CanvasSlide deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== EQ ITEM ENDPOINTS ====================
-
-// Create a new eq item for a slide
-app.post("/eq-slides/:slideId/items", async (req, res) => {
-  try {
-    const { slideId } = req.params;
-    const {
-      name,
-      content,
-      showAt,
-      hideAt,
-      startTime,
-      endTime,
-      code,
-      type,
-      sortOrder,
-    } = req.body;
-
-    // Check if slide exists
-    const slide = await prisma.eqSlide.findUnique({
-      where: { id: slideId },
-    });
-
-    if (!slide) {
-      return res.status(404).json({ error: "EqSlide not found" });
-    }
-
-    const eqItem = await prisma.eqItem.create({
-      data: {
-        id: uuidv4(),
-        uuid: uuidv4(),
-        name: name || "",
-        content: content || "",
-        showAt,
-        hideAt,
-        startTime,
-        endTime,
-        code: code || "",
-        type,
-        sortOrder: sortOrder || 0,
-        slide: {
-          connect: { id: slideId },
-        },
-      },
-    });
-
-    return res.status(201).json(eqItem);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update an eq item
-app.put("/eq-items/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      name,
-      content,
-      showAt,
-      hideAt,
-      startTime,
-      endTime,
-      code,
-      type,
-      sortOrder,
-    } = req.body;
-
-    const updatedItem = await prisma.eqItem.update({
-      where: { id },
-      data: {
-        name,
-        content,
-        showAt,
-        hideAt,
-        startTime,
-        endTime,
-        code,
-        type,
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedItem);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete an eq item
-app.delete("/eq-items/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.eqItem.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "EqItem deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== SP ENDPOINTS ====================
-
-// Create a new solution point for an eq item
-app.post("/eq-items/:itemId/sps", async (req, res) => {
-  try {
-    const { itemId } = req.params;
-    const { code, type, sortOrder } = req.body;
-
-    // Check if item exists
-    const item = await prisma.eqItem.findUnique({
-      where: { id: itemId },
-    });
-
-    if (!item) {
-      return res.status(404).json({ error: "EqItem not found" });
-    }
-
-    const sp = await prisma.sp.create({
-      data: {
-        code,
-        type,
-        sortOrder: sortOrder || 0,
-        item: {
-          connect: { id: itemId },
-        },
-      },
-    });
-
-    return res.status(201).json(sp);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Update a solution point
-app.put("/sps/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { code, type, sortOrder } = req.body;
-
-    const updatedSp = await prisma.sp.update({
-      where: { id },
-      data: {
-        code,
-        type,
-        sortOrder,
-      },
-    });
-
-    return res.json(updatedSp);
-  } catch (error) {
-    return res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete a solution point
-app.delete("/sps/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await prisma.sp.delete({
-      where: { id },
-    });
-
-    return res.json({ message: "Solution point deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Presentations API running on port ${port}`);
-});
-
-module.exports = app;
-
+  

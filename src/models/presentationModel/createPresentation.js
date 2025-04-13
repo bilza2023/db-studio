@@ -1,7 +1,6 @@
 
 const presentationHelpers = require("./presentationHelpers.js");
 
-
   async function createPresentation(prisma,req, res) {
  
     try {
@@ -21,6 +20,7 @@ const presentationHelpers = require("./presentationHelpers.js");
      
         // 1. Create the base presentation
         const presentation = await presentationHelpers.createPresentation(prisma, presentationData);
+       
         // 2. Create eq slides if provided
         if (eqSlidesData && eqSlidesData.length > 0) {
           for (const eqSlideData of eqSlidesData) {

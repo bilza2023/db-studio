@@ -16,10 +16,21 @@ PresentationRouter.post("/create", async (req, res) => {
 });
 PresentationRouter.get("/read/:id", async (req, res) => {
   try {
+   
     const { id } = req.params;
     const presentation = await PresentationModel.read(id);
 
     return res.json(presentation).status(200);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+PresentationRouter.post("/readMany", async (req, res) => {
+  try {
+   
+    const presentations = await PresentationModel.readMany(req,res);
+
+    return res.json(presentations).status(200);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

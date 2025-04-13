@@ -8,7 +8,7 @@ datasource db {
 }
 // Main presentation model (top level content)
 model Presentation {
-  id           String   @id
+  id           String   @id @default(cuid())
   tcode        String
   chapter      Int
   exercise     String
@@ -31,7 +31,7 @@ model Presentation {
 }
 // EqSlide model for equation slides
 model EqSlide {
-  id          String    @id
+  id          String    @id @default(cuid())
   uuid        String    @unique
   period      Int?      @default(10)
   type        String
@@ -50,7 +50,7 @@ model EqSlide {
 }
 // EqItem model for items within equation slides
 model EqItem {
-  id          String    @id
+  id          String    @id @default(cuid())
   uuid        String    @unique
   name        String?    @default("")
   content     String    @default("")
@@ -88,7 +88,7 @@ model Sp {
 ///////////////////////////////////////////////////////////////////////
 // Canvas slide model 
 model CanvasSlide {
-  id              String    @id
+  id              String    @id @default(cuid())
   uuid            String    @unique
   type            String    @default("canvas")
   sortOrder       Int       @default(0)
