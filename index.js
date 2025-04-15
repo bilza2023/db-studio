@@ -1,5 +1,5 @@
 
-require('dotenv').config();
+// require('dotenv').config();
 const PresentationRouter = require("./src/routers/PresentationRouter");
 // const jwt = require('jsonwebtoken');
 const express = require("express");
@@ -9,9 +9,9 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 /////////////////////////////////////
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://taleem.help'],
-  methods: 'POST', // Specify the allowed HTTP methods, e.g., 'GET', 'POST', 'PUT', etc.
-  allowedHeaders: ['Content-Type', 'Authorization'], // Specify the allowed headers
+  origin: ['http://localhost:5173', 'https://taleem.help','https://taleem.help:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], 
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors('*', corsOptions)); 
 // app.use(cors());

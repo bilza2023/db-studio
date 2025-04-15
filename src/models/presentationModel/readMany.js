@@ -1,4 +1,3 @@
-const collectItems =  require("./collectItems");
 
 // Fetch multiple records based on tcode, chapter, exercise, questionNo, and part
 async function readMany(prisma, req,res) {

@@ -1,5 +1,5 @@
 
-const collectItems =  require("./collectItems");
+const collectItems =  require("./fn/collectItems");
 
 // Fetch the complete presentation with all related data
 async function readPresentation(prisma, presentationId) {
